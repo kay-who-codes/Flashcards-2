@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flashcards App</title>
+    <style>
+        :root {
+            /* Color variables */
+            --background: #131313;
+            --text: #e0e0e0;
+            --primary-accent: #00f3f5;
+            --secondary-accent: #ff4081;
+            --card-background: #1f1f1f;
+            --card-shadow: rgba(0, 243, 245, 0.2);
+            
+            /* Spacing variables */
+            --spacing-sm: 8px;
+            --spacing-md: 16px;
+            --spacing-lg: 24px;
+            --spacing-xl: 32px;
+            
+            /* Border radius */
+            --border-radius: 12px;
+            
+            /* Animation speed */
+            --transition-speed: 0.3s;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', sans-serif;
+        }
+        
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            min-height: 100vh;
+            padding: var(--spacing-md);
+            display: flex;
+            flex-direction: column;
+            line-height: 1.6;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: var(--spacing-xl);
+            padding: var(--spacing-lg) 0;
+        }
+        
+        h1 {
+            font-size: 2rem;
+            margin-bottom: var(--spacing-md);
+            background: linear-gradient(90deg, var(--primary-accent), var(--secondary-accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            display: inline-block;
+        }
+        
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: var(--spacing-lg);
+            gap: var(--spacing-md);
+        }
+        
+        button {
+            background-color: var(--card-background);
+            color: var(--text);
+            border: 2px solid var(--primary-accent);
+            border-radius: var(--border-radius);
+            padding: var(--spacing-md);
+            cursor: pointer;
+            transition: all var(--transition-speed) ease;
+            min-width: 48px;
+            min-height: 48px;
+            font-size: 1rem;
+            flex: 1;
+        }
+        
+        button:hover, button:focus {
+            background-color: rgba(0, 243, 245, 0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px var(--card-shadow);
+        }
+        
+        button.active {
+            background-color: var(--primary-accent);
+            color: var(--background);
+        }
+        
+        button.secondary {
+            border-color: var(--secondary-accent);
+        }
+        
+        button.secondary:hover, button.secondary:focus {
+            background-color: rgba(255, 64, 129, 0.1);
+        }
+        
+        button.secondary.active {
+            background-color: var(--secondary-accent);
+        }
+        
+        .card-container {
+            perspective: 1000px;
+            width: 100%;
+            max-width: 600px;
+            height: 300px;
+            margin-bottom: var(--spacing-xl);
+        }
+        
+        .card {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform var(--transition-speed) ease;
+            transform-style: preserve-3d;
+            cursor: pointer;
+        }
+        
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+        
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: var(--spacing-xl);
+            border-radius: var(--border-radius);
+            background-color: var(--card-background);
+            box-shadow: 0 8px 24px var(--card-shadow);
+            overflow: hidden;
+        }
+        
+        .card-front {
+            border-left: 4px solid var(--primary-accent);
+        }
+        
+        .card-back {
+            border-left: 4px solid var(--secondary-accent);
+            transform: rotateY(180deg);
+        }
+        
+        .card-content {
+            font-size: 1.5rem;
+            font-weight: 500;
+            max-width: 100%;
+            overflow-wrap: break-word;
+        }
+        
+        .card-notes {
+            margin-top: var(--spacing-lg);
+            font-size: 1rem;
+            color: var(--text);
+            opacity: 0.8;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height var(--transition-speed) ease;
+            width: 100%;
+        }
+        
+        .card-notes.visible {
+            max-height: 200px;
+        }
+        
+        .card-number {
+            position: absolute;
+            bottom: var(--spacing-md);
+            right: var(--spacing-md);
+            font-size: 0.8rem;
+            opacity: 0.6;
+        }
+        
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 600px;
+            gap: var(--spacing-md);
+        }
+        
+        .note-toggle {
+            margin-top: var(--spacing-lg);
+            font-size: 0.9rem;
+            color: var(--secondary-accent);
+            background: none;
+            border: 1px solid var(--secondary-accent);
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: all var(--transition-speed) ease;
+            display: none;
+        }
+        
+        .note-toggle.visible {
+            display: block;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: auto;
+            padding: var(--spacing-lg) 0;
+            opacity: 0.7;
+            font-size: 0.9rem;
+        }
+        
+        /* Responsive adjustments */
+        @media (min-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+            
+            .card-container {
+                height: 350px;
+            }
+            
+            .card-content {
+                font-size: 1.75rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .card-container {
+                height: 250px;
+            }
+            
+            .card-content {
+                font-size: 1.25rem;
+            }
+            
+            button {
+                padding: var(--spacing-sm);
+                font-size: 0.9rem;
+            }
+        }
+        
+        /* Loading animation */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100px;
+        }
+        
+        .loading-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: var(--primary-accent);
+            margin: 0 6px;
+            animation: dot-pulse 1.5s infinite ease-in-out;
+        }
+        
+        .loading-dot:nth-child(2) {
+            animation-delay: 0.3s;
+            background-color: var(--text);
+        }
+        
+        .loading-dot:nth-child(3) {
+            animation-delay: 0.6s;
+            background-color: var(--secondary-accent);
+        }
+        
+        @keyframes dot-pulse {
+            0%, 100% {
+                transform: scale(0.8);
+                opacity: 0.5;
+            }
+            50% {
+                transform: scale(1.2);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>Flashcards</h1>
+    </header>
+    
+    <main>
+        <section class="controls">
+            <button id="showFront" class="active">Front</button>
+            <button id="showBack" class="secondary">Back</button>
+        </section>
+        
+        <section class="card-container">
+            <div class="card">
+                <div class="card-face card-front">
+                    <div class="card-content">Loading flashcards...</div>
+                    <div class="loading">
+                        <div class="loading-dot"></div>
+                        <div class="loading-dot"></div>
+                        <div class="loading-dot"></div>
+                    </div>
+                    <div class="card-number"></div>
+                </div>
+                <div class="card-face card-back">
+                    <div class="card-content"></div>
+                    <div class="card-notes"></div>
+                    <button class="note-toggle">Show Notes</button>
+                    <div class="card-number"></div>
+                </div>
+            </div>
+        </section>
+        
+        <section class="navigation">
+            <button id="prevCard">Previous</button>
+            <button id="randomCard" class="secondary">Get Random Card</button>
+            <button id="nextCard">Next</button>
+        </section>
+    </main>
+    
+    <footer>
+        <p>Flashcards App &copy; 2025</p>
+    </footer>
+    
+    <script>
+        // Main application code
+        document.addEventListener('DOMContentLoaded', () => {
+            // App state
+            const state = {
+                cards: [],
+                currentCardIndex: 0,
+                showingFront: true,
+                notesVisible: false,
+                isLoading: true
+            };
+            
+            // DOM elements
+            const cardElement = document.querySelector('.card');
+            const frontContent = document.querySelector('.card-front .card-content');
+            const backContent = document.querySelector('.card-back .card-content');
+            const cardNotes = document.querySelector('.card-notes');
+            const noteToggle = document.querySelector('.note-toggle');
+            const frontCardNumber = document.querySelector('.card-front .card-number');
+            const backCardNumber = document.querySelector('.card-back .card-number');
+            const showFrontBtn = document.getElementById('showFront');
+            const showBackBtn = document.getElementById('showBack');
+            const prevCardBtn = document.getElementById('prevCard');
+            const nextCardBtn = document.getElementById('nextCard');
+            const randomCardBtn = document.getElementById('randomCard');
+            const loadingElement = document.querySelector('.loading');
+            
+            // Fetch cards from prompts.json
+            async function fetchCards() {
+                try {
+                    // Try to fetch from the specified path
+                    const response = await fetch('Assets/prompts.json');
+                    
+                    if (!response.ok) {
+                        throw new Error('Could not load flashcards file');
+                    }
+                    
+                    const data = await response.json();
+                    state.cards = Array.isArray(data) ? data : [];
+                    
+                    // If no cards were found, use demo cards
+                    if (state.cards.length === 0) {
+                        useDemoCards();
+                    }
+                } catch (error) {
+                    console.error('Error loading flashcards:', error);
+                    useDemoCards();
+                } finally {
+                    state.isLoading = false;
+                    updateCardDisplay();
+                }
+            }
+            
+            // Use demo cards if file can't be loaded
+            function useDemoCards() {
+                state.cards = [
+                    {
+                        front: "What is HTML?",
+                        back: "HyperText Markup Language",
+                        notes: "HTML is the standard markup language for creating web pages and web applications."
+                    },
+                    {
+                        front: "What is CSS?",
+                        back: "Cascading Style Sheets",
+                        notes: "CSS is a style sheet language used for describing the presentation of a document written in HTML."
+                    },
+                    {
+                        front: "What is JavaScript?",
+                        back: "A programming language for the web",
+                        notes: "JavaScript is a programming language that enables interactive web pages and is an essential part of web applications."
+                    },
+                    {
+                        front: "What is a DOM?",
+                        back: "Document Object Model",
+                        notes: "The DOM is a programming interface for web documents. It represents the page so programs can change the document structure, style, and content."
+                    },
+                    {
+                        front: "What is Flexbox?",
+                        back: "A CSS layout module",
+                        notes: "Flexbox is a CSS layout model that allows responsive elements within a container to be automatically arranged depending on viewport size."
+                    }
+                ];
+            }
+            
+            // Update the card display based on current state
+            function updateCardDisplay() {
+                if (state.isLoading || state.cards.length === 0) {
+                    frontContent.textContent = "Loading flashcards...";
+                    loadingElement.style.display = "flex";
+                    return;
+                }
+                
+                loadingElement.style.display = "none";
+                
+                const currentCard = state.cards[state.currentCardIndex];
+                frontContent.textContent = currentCard.front;
+                backContent.textContent = currentCard.back;
+                
+                // Update card numbers
+                const cardNumberText = `${state.currentCardIndex + 1}/${state.cards.length}`;
+                frontCardNumber.textContent = cardNumberText;
+                backCardNumber.textContent = cardNumberText;
+                
+                // Check if notes exist and update toggle button visibility
+                if (currentCard.notes && currentCard.notes.trim() !== '') {
+                    cardNotes.textContent = currentCard.notes;
+                    noteToggle.classList.add('visible');
+                } else {
+                    noteToggle.classList.remove('visible');
+                    cardNotes.classList.remove('visible');
+                }
+                
+                // Reset notes visibility state
+                state.notesVisible = false;
+                noteToggle.textContent = 'Show Notes';
+                cardNotes.classList.remove('visible');
+                
+                // Update card side
+                updateCardSide();
+            }
+            
+            // Update which side of the card is displayed
+            function updateCardSide() {
+                if (state.showingFront) {
+                    cardElement.classList.remove('flipped');
+                    showFrontBtn.classList.add('active');
+                    showBackBtn.classList.remove('active');
+                } else {
+                    cardElement.classList.add('flipped');
+                    showFrontBtn.classList.remove('active');
+                    showBackBtn.classList.add('active');
+                }
+            }
+            
+            // Go to previous card
+            function goToPrevCard() {
+                if (state.currentCardIndex > 0) {
+                    state.currentCardIndex--;
+                    updateCardDisplay();
+                }
+            }
+            
+            // Go to next card
+            function goToNextCard() {
+                if (state.currentCardIndex < state.cards.length - 1) {
+                    state.currentCardIndex++;
+                    updateCardDisplay();
+                }
+            }
+            
+            // Get a random card
+            function getRandomCard() {
+                if (state.cards.length <= 1) return;
+                
+                // Get a random index that's different from the current one
+                let randomIndex;
+                do {
+                    randomIndex = Math.floor(Math.random() * state.cards.length);
+                } while (randomIndex === state.currentCardIndex);
+                
+                state.currentCardIndex = randomIndex;
+                state.showingFront = true; // Always show front of new random card
+                updateCardDisplay();
+            }
+            
+            // Toggle card flip
+            function toggleCardFlip() {
+                state.showingFront = !state.showingFront;
+                updateCardSide();
+            }
+            
+            // Toggle notes visibility
+            function toggleNotes() {
+                state.notesVisible = !state.notesVisible;
+                if (state.notesVisible) {
+                    cardNotes.classList.add('visible');
+                    noteToggle.textContent = 'Hide Notes';
+                } else {
+                    cardNotes.classList.remove('visible');
+                    noteToggle.textContent = 'Show Notes';
+                }
+            }
+            
+            // Event listeners
+            showFrontBtn.addEventListener('click', () => {
+                state.showingFront = true;
+                updateCardSide();
+            });
+            
+            showBackBtn.addEventListener('click', () => {
+                state.showingFront = false;
+                updateCardSide();
+            });
+            
+            prevCardBtn.addEventListener('click', goToPrevCard);
+            nextCardBtn.addEventListener('click', goToNextCard);
+            randomCardBtn.addEventListener('click', getRandomCard);
+            noteToggle.addEventListener('click', toggleNotes);
+            
+            // Allow flipping card by clicking on it
+            cardElement.addEventListener('click', (e) => {
+                // Don't flip if clicking on the note toggle button
+                if (e.target === noteToggle) return;
+                
+                toggleCardFlip();
+            });
+            
+            // Keyboard navigation
+            document.addEventListener('keydown', (e) => {
+                switch (e.key) {
+                    case 'ArrowLeft':
+                        goToPrevCard();
+                        break;
+                    case 'ArrowRight':
+                        goToNextCard();
+                        break;
+                    case ' ':
+                    case 'Enter':
+                        toggleCardFlip();
+                        break;
+                    case 'r':
+                        getRandomCard();
+                        break;
+                }
+            });
+            
+            // Swipe detection for mobile
+            let touchStartX = 0;
+            let touchEndX = 0;
+            
+            document.addEventListener('touchstart', (e) => {
+                touchStartX = e.changedTouches[0].screenX;
+            });
+            
+            document.addEventListener('touchend', (e) => {
+                touchEndX = e.changedTouches[0].screenX;
+                handleSwipe();
+            });
+            
+            function handleSwipe() {
+                const swipeThreshold = 50;
+                if (touchEndX < touchStartX - swipeThreshold) {
+                    // Swipe left
+                    goToNextCard();
+                }
+                if (touchEndX > touchStartX + swipeThreshold) {
+                    // Swipe right
+                    goToPrevCard();
+                }
+            }
+            
+            // Initialize the app
+            fetchCards();
+        });
+    </script>
+</body>
+</html>
